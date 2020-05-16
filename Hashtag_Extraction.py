@@ -30,6 +30,10 @@ def stopwords_rem1(tweets):
     result = ' '.join(resultwords)
     return result
 
+def remove_digits(tweets):
+    res = ''.join([i for i in tweets if not i.isdigit()]) 
+    return res
+
 text_processor = TextPreProcessor(
     # terms that will be normalized
     normalize=['url', 'email', 'percent', 'money', 'phone', 'user',
@@ -119,5 +123,6 @@ df['popular_hashtags'] = df.popular_hashtags.apply(
 
 df['popular_hashtags'] = df['popular_hashtags'].astype('str')
 df['popular_hashtags']= df['popular_hashtags'].apply(stopwords_rem1)
+df['popular_hashtags'] = df['popular_hashtags'].popular_hashtags.apply(remove_digits)
 
 df.to_csv(r'out.csv')
