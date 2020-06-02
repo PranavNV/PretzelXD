@@ -5,6 +5,8 @@ from ekphrasis.classes.preprocessor import TextPreProcessor
 from ekphrasis.classes.tokenizer import SocialTokenizer
 from ekphrasis.dicts.emoticons import emoticons
 
+#slangs are present in 'slangs' file
+ser = pd.read_table('slangs', sep = "  -  ", header = None)
 
 def find_hashtags(tweet):
     '''This function will extract hashtags'''
@@ -33,6 +35,20 @@ def stopwords_rem1(tweets):
 def remove_digits(tweets):
     res = ''.join([i for i in tweets if not i.isdigit()]) 
     return res
+
+
+#slang function
+def slang_remove(tweet):
+  tweet = tweet.split(" ")
+  loc = 0
+  for _str in tweet:
+    for j in range(0,5385):
+      _str = re.sub('[^a-zA-Z0-9-_.]', '', _str)
+      if _str == ser[0][j]:
+        tweet[loc] = ser[1][j]
+    loc = loc+1
+  return ' '.join(tweet)
+
 
 text_processor = TextPreProcessor(
     # terms that will be normalized
@@ -115,13 +131,16 @@ df['popular_hashtags'] = hashtags_list_df.hashtags.apply(
                                   if hashtag in popular_hashtags_set])
 
 
+df['text'] = df.text.apply(slang_remove)
 df['text'] = df.text.apply(ekphrasis_pre)
 df['text'] = df.text.apply(stopwords_rem)
+
 
 df['popular_hashtags'] = df.popular_hashtags.apply(
             lambda hashtag_list: ekphrasis_pre(str([hashtag for hashtag in hashtag_list])))
 
 df['popular_hashtags'] = df['popular_hashtags'].astype('str')
+#df['popular_hashtags']= df['popular_hashtags'].apply(slang_remove)
 df['popular_hashtags']= df['popular_hashtags'].apply(stopwords_rem1)
 df['popular_hashtags'] = df['popular_hashtags'].popular_hashtags.apply(remove_digits)
 
