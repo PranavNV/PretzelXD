@@ -36,6 +36,9 @@ def remove_digits(tweets):
     res = ''.join([i for i in tweets if not i.isdigit()]) 
     return res
 
+def cleaner(tweet):
+    tweet = tweet[2:]
+    return tweet
 
 #slang function
 def slang_remove(tweet):
@@ -83,20 +86,24 @@ text_processor = TextPreProcessor(
 stopw = ['<hashtag>','</hashtag>','@','<','>','<allcaps>','</allcaps>','<user>','...','..','.','-','+','#','!','/','<emphasis>','<elongated>','<repeated>', ',',"'","'"]
 stop = ['<hashtag>','</hashtag>', '[',']','[]', ',',"'","'"]
 
+with open("tweets_combolabels.labels", encoding="utf8") as doc:
+    labels = doc.read().splitlines()
 
-with open("us_train.text", encoding="utf8") as doc:
-    train_text = doc.read().splitlines()
+labels = pd.DataFrame(labels)
 
-with open("us_trial.text", encoding="utf8") as doc:
-    train_text = doc.read().splitlines()
+with open("tweets_combo.text", encoding="utf8") as doc:
+    data = doc.read().splitlines()
 
-df_train = pd.DataFrame(train_text)
-df_trial = pd.DataFrame(train_text)
-
-frames = [df_train, df_trial]
-df = pd.concat(frames)
+df = pd.DataFrame(data)
 df.columns = ['text']
+df['labels'] = labels
 
+#remove the noise character
+df['text'] = df.text.apply(cleaner)
+
+#remove retweets
+df = df[~df.text.str.startswith('RT')]
+df = df[~df.text.str.startswith('rt')]
 
 
 df['hashtags'] = df.text.apply(find_hashtags)
@@ -117,7 +124,7 @@ popular_hashtags = flattened_hashtags_df.groupby('hashtag').size()\
                                         .reset_index(drop=True)
 
 # take hashtags which appear at least this amount of times
-min_appearance = 5
+min_appearance = 1
 # find popular hashtags - make into python set for efficiency
 popular_hashtags_set = set(popular_hashtags[
                            popular_hashtags.counts>=min_appearance
