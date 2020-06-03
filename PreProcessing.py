@@ -131,10 +131,6 @@ df['popular_hashtags'] = hashtags_list_df.hashtags.apply(
                                   if hashtag in popular_hashtags_set])
 
 
-df['text'] = df.text.apply(slang_remove)
-df['text'] = df.text.apply(ekphrasis_pre)
-df['text'] = df.text.apply(stopwords_rem)
-
 
 df['popular_hashtags'] = df.popular_hashtags.apply(
             lambda hashtag_list: ekphrasis_pre(str([hashtag for hashtag in hashtag_list])))
@@ -142,6 +138,12 @@ df['popular_hashtags'] = df.popular_hashtags.apply(
 df['popular_hashtags'] = df['popular_hashtags'].astype('str')
 #df['popular_hashtags']= df['popular_hashtags'].apply(slang_remove)
 df['popular_hashtags']= df['popular_hashtags'].apply(stopwords_rem1)
-df['popular_hashtags'] = df['popular_hashtags'].popular_hashtags.apply(remove_digits)
+df['popular_hashtags'] = df['popular_hashtags'].apply(remove_digits)
+
+
+
+df['text'] = df.text.apply(slang_remove)
+df['text'] = df.text.apply(ekphrasis_pre)
+df['text'] = df.text.apply(stopwords_rem)
 
 df.to_csv(r'out.csv')
