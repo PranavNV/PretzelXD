@@ -83,8 +83,8 @@ text_processor = TextPreProcessor(
     dicts=[emoticons]
 )
 
-stopw = ['<hashtag>','</hashtag>','@','<','>','<allcaps>','</allcaps>','<user>','...','..','.','-','+','#','!','/','<emphasis>','<elongated>','<repeated>', ',',"'","'"]
-stop = ['<hashtag>','</hashtag>', '[',']','[]', ',',"'","'"]
+stopw = ['<hashtag>','<url>','<time>','<date>','<number>','</hashtag>','@','<','>','<allcaps>','</allcaps>','<user>','...','..','.','-','+','#','!','/','<emphasis>','<elongated>','<repeated>', ',',"'","'"]
+stop = ['<hashtag>','</hashtag>','<url>','<time>', '[',']','[]', ',',"'","'",'<number>','<date>']
 
 with open("tweets_combolabels.labels", encoding="utf8") as doc:
     labels = doc.read().splitlines()
