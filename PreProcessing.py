@@ -4,9 +4,22 @@ from pandas import DataFrame
 from ekphrasis.classes.preprocessor import TextPreProcessor
 from ekphrasis.classes.tokenizer import SocialTokenizer
 from ekphrasis.dicts.emoticons import emoticons
+from tqdm import tqdm, tqdm_notebook
+tqdm_notebook().pandas()
 
 #slangs are present in 'slangs' file
 ser = pd.read_table('slangs', sep = "  -  ", header = None)
+
+# define punctuation
+punctuations = '''!()-[]{};:'"\,<>./?@#$%^&*_~'''
+
+def remove_punct(tweet):
+    '''This function will remove punctuations'''
+	no_punct = ""
+	for char in tweet:
+  		 if char not in punctuations:
+      			 no_punct = no_punct + char
+	return no_punct
 
 def find_hashtags(tweet):
     '''This function will extract hashtags'''
@@ -99,16 +112,16 @@ df.columns = ['text']
 df['labels'] = labels
 
 #remove the noise character
-df['text'] = df.text.apply(cleaner)
+df['text'] = df.text.progress_apply(cleaner)
 
 #remove retweets
 df = df[~df.text.str.startswith('RT')]
 df = df[~df.text.str.startswith('rt')]
 
 
-df['hashtags'] = df.text.apply(find_hashtags)
+df['hashtags'] = df.text.progress_apply(find_hashtags)
 hashtags_list_df = df.loc[
-                       df.hashtags.apply(
+                       df.hashtags.progress_apply(
                            lambda hashtags_list: hashtags_list !=['sdfsdfds']
                        ),['hashtags']]
 
@@ -133,24 +146,27 @@ popular_hashtags_set = set(popular_hashtags[
 # make a new column with only the popular hashtags
 
 
-df['popular_hashtags'] = hashtags_list_df.hashtags.apply(
+df['popular_hashtags'] = hashtags_list_df.hashtags.progress_apply(
             lambda hashtag_list: [hashtag for hashtag in hashtag_list
                                   if hashtag in popular_hashtags_set])
 
 
 
-df['popular_hashtags'] = df.popular_hashtags.apply(
+df['popular_hashtags'] = df.popular_hashtags.progress_apply(
             lambda hashtag_list: ekphrasis_pre(str([hashtag for hashtag in hashtag_list])))
 
 df['popular_hashtags'] = df['popular_hashtags'].astype('str')
-#df['popular_hashtags']= df['popular_hashtags'].apply(slang_remove)
-df['popular_hashtags']= df['popular_hashtags'].apply(stopwords_rem1)
-df['popular_hashtags'] = df['popular_hashtags'].apply(remove_digits)
+#df['popular_hashtags']= df['popular_hashtags'].progress_apply(slang_remove)
+df['popular_hashtags']= df['popular_hashtags'].progress_apply(stopwords_rem1)
+df['popular_hashtags'] = df['popular_hashtags'].progress_apply(remove_digits)
+df['popular_hashtags'] = df['popular_hashtags'].progress_apply(remove_punct)
 
 
 
-df['text'] = df.text.apply(slang_remove)
-df['text'] = df.text.apply(ekphrasis_pre)
-df['text'] = df.text.apply(stopwords_rem)
+df['text'] = df.text.progress_apply(slang_remove)
+df['text'] = df.text.progress_apply(ekphrasis_pre)
+df['text'] = df.text.progress_apply(stopwords_rem)
+df['text'] = df.text.progress_apply(remove_digits)
+df['text'] = df.text.progress_apply(remove_punct)
 
 df.to_csv(r'out.csv')
