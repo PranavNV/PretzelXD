@@ -7,6 +7,7 @@ from ekphrasis.dicts.emoticons import emoticons
 from tqdm import tqdm, tqdm_notebook
 tqdm_notebook().pandas()
 
+
 #slangs are present in 'slangs' file
 ser = pd.read_table('slangs', sep = "  -  ", header = None)
 
@@ -14,12 +15,11 @@ ser = pd.read_table('slangs', sep = "  -  ", header = None)
 punctuations = '''!()-[]{};:'"\,<>./?@#$%^&*_~'''
 
 def remove_punct(tweet):
-    '''This function will remove punctuations'''
-	no_punct = ""
-	for char in tweet:
-  		 if char not in punctuations:
-      			 no_punct = no_punct + char
-	return no_punct
+    no_punct = ""
+    for char in tweet:
+        if char not in punctuations:
+            no_punct = no_punct + char
+    return no_punct
 
 def find_hashtags(tweet):
     '''This function will extract hashtags'''
@@ -50,20 +50,22 @@ def remove_digits(tweets):
     return res
 
 def cleaner(tweet):
+    if str(tweet) =='nan':
+        return tweet
     tweet = tweet[2:]
     return tweet
 
 #slang function
 def slang_remove(tweet):
-  tweet = tweet.split(" ")
-  loc = 0
-  for _str in tweet:
-    for j in range(0,5385):
-      _str = re.sub('[^a-zA-Z0-9-_.]', '', _str)
-      if _str == ser[0][j]:
-        tweet[loc] = ser[1][j]
-    loc = loc+1
-  return ' '.join(tweet)
+    tweet = tweet.split(" ")
+    loc = 0
+    for _str in tweet:
+        for j in range(0,5385):
+            _str = re.sub('[^a-zA-Z0-9-_.]', '', _str)
+            if _str == ser[0][j]:
+                tweet[loc] = ser[1][j]
+        loc = loc+1
+    return ' '.join(tweet)
 
 
 text_processor = TextPreProcessor(
@@ -99,27 +101,34 @@ text_processor = TextPreProcessor(
 stopw = ['<hashtag>','<url>','<time>','<date>','<number>','</hashtag>','@','<','>','<allcaps>','</allcaps>','<user>','...','..','.','-','+','#','!','/','<emphasis>','<elongated>','<repeated>', ',',"'","'"]
 stop = ['<hashtag>','</hashtag>','<url>','<time>', '[',']','[]', ',',"'","'",'<number>','<date>']
 
-with open("tweets_combolabels.labels", encoding="utf8") as doc:
-    labels = doc.read().splitlines()
+# with open("tweets_combolabels.labels", encoding="utf8") as doc:
+#     labels = doc.read().splitlines()
 
-labels = pd.DataFrame(labels)
+# labels = pd.DataFrame(labels)
 
-with open("tweets_combo.text", encoding="utf8") as doc:
-    data = doc.read().splitlines()
+# with open("tweets_combo.text", encoding="utf8") as doc:
+#     data = doc.read().splitlines()
 
-df = pd.DataFrame(data)
-df.columns = ['text']
-df['labels'] = labels
+# df = pd.DataFrame(data)
+# df.columns = ['text']
+# df['labels'] = labels
 
-#remove the noise character
-df['text'] = df.text.progress_apply(cleaner)
+#ADD THE LINE HERE TO READ THE CSV FILE INTO DATAFRAME
+df = df2
+print("Loaded the new dataframe:",df.shape)
 
 #remove retweets
-df = df[~df.text.str.startswith('RT')]
-df = df[~df.text.str.startswith('rt')]
+# df = df[~df['processed_text'].str.startswith('RT')]
+# df = df[~df['processed_text'].str.startswith('rt')]
+df = df[df['new_text'].str.startswith('RT') == False]
+df = df[df['new_text'].str.startswith('rt') == False]
+print('shape after removing retweets',df.shape)
 
+#remove the noise character
+df['processed_text'] = df['new_text'].progress_apply(cleaner)
+print("Shape after removing noise character: ", df.shape)
 
-df['hashtags'] = df.text.progress_apply(find_hashtags)
+df['hashtags'] = df.processed_text.progress_apply(find_hashtags)
 hashtags_list_df = df.loc[
                        df.hashtags.progress_apply(
                            lambda hashtags_list: hashtags_list !=['sdfsdfds']
@@ -163,10 +172,10 @@ df['popular_hashtags'] = df['popular_hashtags'].progress_apply(remove_punct)
 
 
 
-df['text'] = df.text.progress_apply(slang_remove)
-df['text'] = df.text.progress_apply(ekphrasis_pre)
-df['text'] = df.text.progress_apply(stopwords_rem)
-df['text'] = df.text.progress_apply(remove_digits)
-df['text'] = df.text.progress_apply(remove_punct)
+#df['text'] = df.text.progress_apply(slang_remove)
+df['processed_text'] = df.processed_text.progress_apply(ekphrasis_pre)
+df['processed_text'] = df.processed_text.progress_apply(stopwords_rem)
+df['processed_text'] = df.processed_text.progress_apply(remove_digits)
+df['processed_text'] = df.processed_text.progress_apply(remove_punct)
 
-df.to_csv(r'out.csv')
+df.to_csv(r'tweets_lbl_prep.csv')
