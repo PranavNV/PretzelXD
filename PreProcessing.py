@@ -96,8 +96,8 @@ text_processor = TextPreProcessor(
     dicts=[emoticons]
 )
 
-stopw = ['<hashtag>','<url>','<time>','<date>','<number>','</hashtag>','@','<','>','<allcaps>','</allcaps>','<user>','...','..','.','-','+','#','!','/','<emphasis>','<elongated>','<repeated>', ',',"'","'"]
-stop = ['<hashtag>','</hashtag>','<url>','<time>', '[',']','[]', ',',"'","'",'<number>','<date>']
+stopw = ['<hashtag>','<url>','<time>','<date>','<number>','</hashtag>','@','<','>','<allcaps>','</allcaps>','<user>','...','..','.','-','+','#','!','/','<emphasis>','<elongated>','<repeated>', ',',"'","'",'â€¦']
+stop = ['<hashtag>','</hashtag>','<url>','<time>', '[',']','[]', ',',"'","'",'<number>','<date>','â€¦']
 
 with open("tweets_combolabels.labels", encoding="utf8") as doc:
     labels = doc.read().splitlines()
@@ -112,7 +112,7 @@ df.columns = ['text']
 df['labels'] = labels
 
 #remove the noise character
-df['text'] = df.text.progress_apply(cleaner)
+#df['text'] = df.text.progress_apply(cleaner)
 
 #remove retweets
 df = df[~df.text.str.startswith('RT')]
